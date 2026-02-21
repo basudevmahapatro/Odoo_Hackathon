@@ -1,12 +1,19 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+import { MongoClient, ServerApiVersion } from "mongodb";
 import { env } from "~/env";
 
-const client = new MongoClient(env.MONGODB_URI);
+const client = new MongoClient(env.MONGODB_URI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
 
 export const auth = betterAuth({
-  database: mongodbAdapter(client.db()),
+  baseURL: env.NEXT_PUBLIC_APP_URL,
+  database: mongodbAdapter(client.db("fleetflow")),
   emailAndPassword: {
     enabled: true,
   },
