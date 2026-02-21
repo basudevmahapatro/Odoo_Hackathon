@@ -141,7 +141,7 @@ export default function VehiclesPage() {
 
         <button
           onClick={() => setShowModal(true)}
-          className="rounded-lg bg-black px-6 py-2 text-white transition hover:bg-gray-800"
+          className="cursor-pointer rounded-lg bg-black px-6 py-2 text-white transition hover:bg-gray-800"
         >
           New Vehicle
         </button>
@@ -229,7 +229,7 @@ export default function VehiclesPage() {
                     {vehicle.status !== "out_of_service" && (
                       <button
                         onClick={() => void retireVehicle(vehicle._id)}
-                        className="text-black hover:underline"
+                        className="cursor-pointer text-black hover:underline"
                       >
                         Retire
                       </button>
@@ -345,14 +345,14 @@ export default function VehiclesPage() {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="rounded border px-4 py-2 hover:bg-gray-100"
+                className="cursor-pointer rounded border px-4 py-2 hover:bg-gray-100"
               >
                 Cancel
               </button>
 
               <button
                 onClick={() => void addVehicle()}
-                className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
+                className="cursor-pointer rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
               >
                 Add Vehicle
               </button>

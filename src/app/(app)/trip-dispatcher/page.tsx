@@ -206,7 +206,7 @@ export default function TripDispatcherPage() {
         <button
           type="button"
           onClick={() => void fetchAll()}
-          className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
+          className="cursor-pointer rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
         >
           Refresh
         </button>
@@ -218,7 +218,7 @@ export default function TripDispatcherPage() {
           <button
             type="button"
             onClick={() => setError(null)}
-            className="ml-3 font-medium underline"
+            className="ml-3 cursor-pointer font-medium underline"
           >
             Dismiss
           </button>
@@ -283,7 +283,7 @@ export default function TripDispatcherPage() {
                             onClick={() =>
                               void updateTripStatus(trip._id, "Completed")
                             }
-                            className="text-xs font-medium text-green-700 hover:underline"
+                            className="cursor-pointer text-xs font-medium text-green-700 hover:underline"
                           >
                             Complete
                           </button>
@@ -292,7 +292,7 @@ export default function TripDispatcherPage() {
                             onClick={() =>
                               void updateTripStatus(trip._id, "Cancelled")
                             }
-                            className="text-xs font-medium text-red-700 hover:underline"
+                            className="cursor-pointer text-xs font-medium text-red-700 hover:underline"
                           >
                             Cancel
                           </button>
@@ -468,7 +468,7 @@ export default function TripDispatcherPage() {
           <button
             type="submit"
             disabled={dispatching}
-            className="w-full rounded-md bg-black px-4 py-2.5 font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+            className="w-full cursor-pointer rounded-md bg-black px-4 py-2.5 font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
           >
             {dispatching ? "Dispatching..." : "Confirm & Dispatch Trip"}
           </button>

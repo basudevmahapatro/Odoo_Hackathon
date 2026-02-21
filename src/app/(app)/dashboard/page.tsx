@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <p className="text-red-600">{error}</p>
         <button
           onClick={() => void fetchDashboard()}
-          className="rounded-md bg-black px-4 py-2 text-sm text-white hover:bg-gray-800"
+          className="cursor-pointer rounded-md bg-black px-4 py-2 text-sm text-white hover:bg-gray-800"
         >
           Retry
         </button>
@@ -107,14 +107,14 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => router.push("/trip-dispatcher")}
-            className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+            className="cursor-pointer rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
           >
             New Trip
           </button>
           <button
             type="button"
             onClick={() => router.push("/vehicles")}
-            className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+            className="cursor-pointer rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
           >
             New Vehicle
           </button>
@@ -131,20 +131,20 @@ export default function DashboardPage() {
           <div className="flex gap-3">
             <button
               type="button"
-              className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
+              className="cursor-pointer rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
             >
               Group by
             </button>
             <button
               type="button"
-              className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
+              className="cursor-pointer rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
             >
               Filter
             </button>
             <button
               type="button"
               onClick={() => void fetchDashboard()}
-              className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
+              className="cursor-pointer rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
             >
               Refresh
             </button>

@@ -223,7 +223,7 @@ export default function ExpensesAndFuelPage() {
         </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
+          className="cursor-pointer rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800"
         >
           Log Fuel Expense
         </button>
@@ -301,7 +301,7 @@ export default function ExpensesAndFuelPage() {
                     <td className="px-3 py-2">
                       <button
                         onClick={() => handleDelete(log._id)}
-                        className="text-sm text-red-600 hover:text-red-800"
+                        className="cursor-pointer text-sm text-red-600 hover:text-red-800"
                       >
                         Delete
                       </button>
@@ -463,14 +463,14 @@ export default function ExpensesAndFuelPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+                  className="flex-1 cursor-pointer rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
                 >
                   {submitting ? "Creating..." : "Create"}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-black transition-colors hover:bg-gray-300"
+                  className="flex-1 cursor-pointer rounded-md bg-gray-200 px-4 py-2 text-black transition-colors hover:bg-gray-300"
                 >
                   Cancel
                 </button>
