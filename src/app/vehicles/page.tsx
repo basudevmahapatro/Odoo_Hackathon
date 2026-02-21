@@ -1,48 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-interface Vehicle {
-  _id: string;
-  vehicleNumber: string;
-  plateNumber: string;
-  vehicleModel: string;
-  capacity: number;
-  capacityUnit: string;
-  odometer: number;
-  status: string;
+import type { Vehicle, VehicleStatus } from "~/types/vehicle";
+
+const STATUS_LABELS: Record<VehicleStatus, string> = {
+  available: "Available",
+  on_trip: "On Trip",
+  in_shop: "In Shop",
+  out_of_service: "Out of Service",
+};
+
+const STATUS_OPTIONS: Array<{ value: VehicleStatus | "all"; label: string }> = [
+  { value: "all", label: "All Status" },
+  { value: "available", label: "Available" },
+  { value: "on_trip", label: "On Trip" },
+  { value: "in_shop", label: "In Shop" },
+  { value: "out_of_service", label: "Out of Service" },
+];
+
+interface NewVehicleForm {
+  name: string;
+  model: string;
+  licensePlate: string;
+  type: "truck" | "van" | "bike";
+  maxCapacity: string;
+  capacityUnit: "kg" | "ton";
+  odometer: string;
+  region: string;
 }
+
+const initialFormState: NewVehicleForm = {
+  name: "",
+  model: "",
+  licensePlate: "",
+  type: "truck",
+  maxCapacity: "",
+  capacityUnit: "kg",
+  odometer: "",
+  region: "",
+};
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filtered, setFiltered] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<VehicleStatus | "all">(
+    "all",
+  );
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  const [newVehicle, setNewVehicle] = useState<any>({
-    vehicleNumber: "",
-    plateNumber: "",
-    vehicleModel: "",
-    capacity: "",
-    capacityUnit: "kg",
-    odometer: "",
-  });
-
-  useEffect(() => {
-    fetchVehicles();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [statusFilter, search, vehicles]);
+  const [newVehicle, setNewVehicle] =
+    useState<NewVehicleForm>(initialFormState);
 
   const fetchVehicles = async () => {
     try {
       const res = await fetch("/api/vehicles");
-      const data = await res.json();
-      setVehicles(data.data || []);
+      const data = (await res.json()) as { data?: Vehicle[] };
+      setVehicles(data.data ?? []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -50,121 +65,134 @@ export default function VehiclesPage() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let result = [...vehicles];
 
-    if (statusFilter !== "All") {
-      result = result.filter(v => v.status === statusFilter);
+    if (statusFilter !== "all") {
+      result = result.filter((v) => v.status === statusFilter);
     }
 
     if (search) {
-      result = result.filter(v =>
-        v.plateNumber.toLowerCase().includes(search.toLowerCase()) ||
-        v.vehicleModel.toLowerCase().includes(search.toLowerCase()) ||
-        v.vehicleNumber.toLowerCase().includes(search.toLowerCase())
+      const term = search.toLowerCase();
+      result = result.filter(
+        (v) =>
+          v.licensePlate.toLowerCase().includes(term) ||
+          v.model.toLowerCase().includes(term) ||
+          v.name.toLowerCase().includes(term),
       );
     }
 
     setFiltered(result);
-  };
+  }, [vehicles, statusFilter, search]);
+
+  useEffect(() => {
+    void fetchVehicles();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const retireVehicle = async (id: string) => {
     await fetch(`/api/vehicles?id=${id}`, { method: "DELETE" });
-    fetchVehicles();
+    void fetchVehicles();
   };
 
   const addVehicle = async () => {
     await fetch("/api/vehicles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newVehicle),
+      body: JSON.stringify({
+        name: newVehicle.name,
+        model: newVehicle.model,
+        licensePlate: newVehicle.licensePlate,
+        type: newVehicle.type,
+        maxCapacity: Number(newVehicle.maxCapacity),
+        capacityUnit: newVehicle.capacityUnit,
+        odometer: Number(newVehicle.odometer),
+        region: newVehicle.region,
+      }),
     });
 
     setShowModal(false);
-    setNewVehicle({
-      vehicleNumber: "",
-      plateNumber: "",
-      vehicleModel: "",
-      capacity: "",
-      capacityUnit: "kg",
-      odometer: "",
-    });
-
-    fetchVehicles();
+    setNewVehicle(initialFormState);
+    void fetchVehicles();
   };
 
-  const available = vehicles.filter(v => v.status === "Available").length;
-  const activeFleet = vehicles.filter(v => v.status === "On Trip").length;
-  const maintenance = vehicles.filter(v => v.status === "In Shop").length;
+  const available = vehicles.filter((v) => v.status === "available").length;
+  const activeFleet = vehicles.filter((v) => v.status === "on_trip").length;
+  const maintenance = vehicles.filter((v) => v.status === "in_shop").length;
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center text-xl font-medium">
+      <div className="flex h-screen items-center justify-center text-xl font-medium">
         Loading Fleet...
       </div>
     );
   }
 
   return (
-    <div className="p-10 bg-gray-50 min-h-screen">
-      
+    <div className="min-h-screen bg-gray-50 p-10">
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-10">
+      <div className="mb-10 flex items-center justify-between">
         <h1 className="text-3xl font-semibold tracking-tight">
           Fleet Vehicles
         </h1>
 
         <button
           onClick={() => setShowModal(true)}
-          className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition"
+          className="rounded-lg bg-black px-6 py-2 text-white transition hover:bg-gray-800"
         >
           + New Vehicle
         </button>
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         <Kpi title="Available" value={available} />
         <Kpi title="On Trip" value={activeFleet} />
         <Kpi title="In Shop" value={maintenance} />
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl shadow-sm mb-8 flex flex-col md:flex-row gap-4">
+      <div className="mb-8 flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm md:flex-row">
         <input
           type="text"
-          placeholder="Search by plate, model or vehicle number..."
-          className="p-3 border rounded w-full focus:outline-none focus:ring-1 focus:ring-black"
+          placeholder="Search by plate, model, or name..."
+          className="w-full rounded border p-3 focus:ring-1 focus:ring-black focus:outline-none"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
 
         <select
-          className="p-3 border rounded focus:outline-none focus:ring-1 focus:ring-black"
+          className="rounded border p-3 focus:ring-1 focus:ring-black focus:outline-none"
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as VehicleStatus | "all")
+          }
         >
-          <option value="All">All Status</option>
-          <option value="Available">Available</option>
-          <option value="On Trip">On Trip</option>
-          <option value="In Shop">In Shop</option>
-          <option value="Retired">Retired</option>
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
 
         <button
-          onClick={fetchVehicles}
-          className="border px-4 py-2 rounded hover:bg-gray-100 transition"
+          onClick={() => void fetchVehicles()}
+          className="rounded border px-4 py-2 transition hover:bg-gray-100"
         >
           Refresh
         </button>
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-4 text-left">Plate</th>
+              <th className="p-4 text-left">License Plate</th>
+              <th className="p-4 text-left">Name</th>
               <th className="p-4 text-left">Model</th>
               <th className="p-4 text-left">Capacity</th>
               <th className="p-4 text-left">Odometer</th>
@@ -175,31 +203,30 @@ export default function VehiclesPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center p-8 text-gray-400">
+                <td colSpan={7} className="p-8 text-center text-gray-400">
                   No vehicles found.
                 </td>
               </tr>
             ) : (
-              filtered.map(vehicle => (
+              filtered.map((vehicle) => (
                 <tr
                   key={vehicle._id}
-                  className="border-t hover:bg-gray-50 transition"
+                  className="border-t transition hover:bg-gray-50"
                 >
-                  <td className="p-4 font-medium">
-                    {vehicle.plateNumber}
-                  </td>
-                  <td className="p-4">{vehicle.vehicleModel}</td>
+                  <td className="p-4 font-medium">{vehicle.licensePlate}</td>
+                  <td className="p-4">{vehicle.name}</td>
+                  <td className="p-4">{vehicle.model}</td>
                   <td className="p-4">
-                    {vehicle.capacity} {vehicle.capacityUnit}
+                    {vehicle.maxCapacity} {vehicle.capacityUnit}
                   </td>
                   <td className="p-4">{vehicle.odometer} km</td>
                   <td className="p-4">
                     <StatusBadge status={vehicle.status} />
                   </td>
                   <td className="p-4">
-                    {vehicle.status !== "Retired" && (
+                    {vehicle.status !== "out_of_service" && (
                       <button
-                        onClick={() => retireVehicle(vehicle._id)}
+                        onClick={() => void retireVehicle(vehicle._id)}
                         className="text-black hover:underline"
                       >
                         Retire
@@ -215,82 +242,112 @@ export default function VehiclesPage() {
 
       {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
-          <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-xl">
-            <h2 className="text-xl font-semibold mb-6">Add New Vehicle</h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-xl">
+            <h2 className="mb-6 text-xl font-semibold">Add New Vehicle</h2>
 
             <div className="grid gap-4">
               <input
-                placeholder="Vehicle Number"
-                className="p-3 border rounded"
-                value={newVehicle.vehicleNumber}
-                onChange={e =>
-                  setNewVehicle({ ...newVehicle, vehicleNumber: e.target.value })
+                placeholder="Vehicle Name"
+                className="rounded border p-3"
+                value={newVehicle.name}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, name: e.target.value })
                 }
               />
 
               <input
-                placeholder="Plate Number"
-                className="p-3 border rounded"
-                value={newVehicle.plateNumber}
-                onChange={e =>
-                  setNewVehicle({ ...newVehicle, plateNumber: e.target.value })
+                placeholder="License Plate"
+                className="rounded border p-3"
+                value={newVehicle.licensePlate}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, licensePlate: e.target.value })
                 }
               />
 
               <input
                 placeholder="Model"
-                className="p-3 border rounded"
-                value={newVehicle.vehicleModel}
-                onChange={e =>
-                  setNewVehicle({ ...newVehicle, vehicleModel: e.target.value })
+                className="rounded border p-3"
+                value={newVehicle.model}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, model: e.target.value })
                 }
               />
+
+              <select
+                className="rounded border p-3"
+                value={newVehicle.type}
+                onChange={(e) =>
+                  setNewVehicle({
+                    ...newVehicle,
+                    type: e.target.value as "truck" | "van" | "bike",
+                  })
+                }
+              >
+                <option value="truck">Truck</option>
+                <option value="van">Van</option>
+                <option value="bike">Bike</option>
+              </select>
 
               <div className="flex gap-3">
                 <input
                   type="number"
-                  placeholder="Capacity"
-                  className="p-3 border rounded w-full"
-                  value={newVehicle.capacity}
-                  onChange={e =>
-                    setNewVehicle({ ...newVehicle, capacity: e.target.value })
+                  placeholder="Max Capacity"
+                  className="w-full rounded border p-3"
+                  value={newVehicle.maxCapacity}
+                  onChange={(e) =>
+                    setNewVehicle({
+                      ...newVehicle,
+                      maxCapacity: e.target.value,
+                    })
                   }
                 />
                 <select
-                  className="p-3 border rounded"
+                  className="rounded border p-3"
                   value={newVehicle.capacityUnit}
-                  onChange={e =>
-                    setNewVehicle({ ...newVehicle, capacityUnit: e.target.value })
+                  onChange={(e) =>
+                    setNewVehicle({
+                      ...newVehicle,
+                      capacityUnit: e.target.value as "kg" | "ton",
+                    })
                   }
                 >
                   <option value="kg">kg</option>
-                  <option value="tons">tons</option>
+                  <option value="ton">ton</option>
                 </select>
               </div>
 
               <input
                 type="number"
                 placeholder="Odometer"
-                className="p-3 border rounded"
+                className="rounded border p-3"
                 value={newVehicle.odometer}
-                onChange={e =>
+                onChange={(e) =>
                   setNewVehicle({ ...newVehicle, odometer: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Region"
+                className="rounded border p-3"
+                value={newVehicle.region}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, region: e.target.value })
                 }
               />
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="border px-4 py-2 rounded hover:bg-gray-100"
+                className="rounded border px-4 py-2 hover:bg-gray-100"
               >
                 Cancel
               </button>
 
               <button
-                onClick={addVehicle}
-                className="bg-black text-white px-5 py-2 rounded hover:bg-gray-800"
+                onClick={() => void addVehicle()}
+                className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
               >
                 Add Vehicle
               </button>
@@ -302,21 +359,28 @@ export default function VehiclesPage() {
   );
 }
 
-/* KPI */
-function Kpi({ title, value }: any) {
+function Kpi({ title, value }: { title: string; value: number }) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <h2 className="text-3xl font-semibold mt-2">{value}</h2>
+    <div className="rounded-xl border bg-white p-6 shadow-sm">
+      <p className="text-sm text-gray-500">{title}</p>
+      <h2 className="mt-2 text-3xl font-semibold">{value}</h2>
     </div>
   );
 }
 
-/* STATUS BADGE */
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: VehicleStatus }) {
+  const colors: Record<VehicleStatus, string> = {
+    available: "bg-green-100 text-green-700",
+    on_trip: "bg-blue-100 text-blue-700",
+    in_shop: "bg-amber-100 text-amber-700",
+    out_of_service: "bg-gray-100 text-gray-500",
+  };
+
   return (
-    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-      {status}
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-medium ${colors[status] ?? ""}`}
+    >
+      {STATUS_LABELS[status]}
     </span>
   );
 }

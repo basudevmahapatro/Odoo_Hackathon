@@ -1,40 +1,56 @@
-import { NextRequest, NextResponse } from "next/server";
-import Vehicle from "~/models/vehicle.model";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { getDb } from "~/server/mongodb/client";
-/**
- * GET /api/vehicles
- * Advanced Filtering + Pagination
- */
+import type {
+  Vehicle,
+  VehicleStatus,
+  CreateVehicleInput,
+} from "~/types/vehicle";
+
+const VEHICLES_COLLECTION = "vehicles";
+
 export async function GET(req: NextRequest) {
   try {
-     await getDb();
+    const db = await getDb();
+    const collection = db.collection<Vehicle>(VEHICLES_COLLECTION);
 
     const { searchParams } = new URL(req.url);
 
-    const status = searchParams.get("status");
-    const capacityMin = searchParams.get("capacityMin");
-    const capacityMax = searchParams.get("capacityMax");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status") as VehicleStatus | null;
+    const type = searchParams.get("type") as "truck" | "van" | "bike" | null;
+    const region = searchParams.get("region");
+    const minCapacity = searchParams.get("minCapacity");
+    const maxCapacity = searchParams.get("maxCapacity");
+    const page = parseInt(searchParams.get("page") ?? "1", 10);
+    const limit = parseInt(searchParams.get("limit") ?? "10", 10);
 
-    const query: any = {};
+    const query: Record<string, unknown> = {};
 
     if (status) query.status = status;
+    if (type) query.type = type;
+    if (region) query.region = region;
 
-    if (capacityMin || capacityMax) {
-      query.capacity = {};
-      if (capacityMin) query.capacity.$gte = Number(capacityMin);
-      if (capacityMax) query.capacity.$lte = Number(capacityMax);
+    if (minCapacity ?? maxCapacity) {
+      query.maxCapacity = {};
+      if (minCapacity)
+        (query.maxCapacity as Record<string, number>).$gte =
+          Number(minCapacity);
+      if (maxCapacity)
+        (query.maxCapacity as Record<string, number>).$lte =
+          Number(maxCapacity);
     }
 
     const skip = (page - 1) * limit;
 
-    const vehicles = await Vehicle.find(query)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const total = await Vehicle.countDocuments(query);
+    const [vehicles, total] = await Promise.all([
+      collection
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .toArray(),
+      collection.countDocuments(query),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -43,149 +59,156 @@ export async function GET(req: NextRequest) {
       totalRecords: total,
       data: vehicles,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
-/**
- * POST /api/vehicles
- * Create New Vehicle with Validation
- */
 export async function POST(req: NextRequest) {
   try {
-    await getDb();
+    const db = await getDb();
+    const collection = db.collection<Vehicle>(VEHICLES_COLLECTION);
 
-    const body = await req.json();
+    const body = (await req.json()) as CreateVehicleInput;
 
     const {
-      vehicleNumber,
-      plateNumber,
-      vehicleModel,
-      capacity,
+      name,
+      model,
+      licensePlate,
+      type,
+      maxCapacity,
       capacityUnit,
       odometer,
+      region,
     } = body;
 
-    // Basic Validation
-    if (!vehicleNumber || !plateNumber || !vehicleModel) {
+    if (
+      !name ||
+      !model ||
+      !licensePlate ||
+      !type ||
+      maxCapacity === undefined ||
+      odometer === undefined ||
+      !region
+    ) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    if (capacity <= 0) {
+    if (maxCapacity <= 0) {
       return NextResponse.json(
         { success: false, message: "Capacity must be greater than 0" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Check duplicate plate
-    const existingPlate = await Vehicle.findOne({ plateNumber });
+    const existingPlate = await collection.findOne({ licensePlate });
     if (existingPlate) {
       return NextResponse.json(
-        { success: false, message: "Plate number already exists" },
-        { status: 409 }
+        { success: false, message: "License plate already exists" },
+        { status: 409 },
       );
     }
 
-    const vehicle = await Vehicle.create({
-      vehicleNumber,
-      plateNumber,
-      Model: vehicleModel,
-      capacity,
-      capacityUnit,
+    const now = new Date();
+    const vehicle: Omit<Vehicle, "_id"> = {
+      name,
+      model,
+      licensePlate,
+      type,
+      maxCapacity,
+      capacityUnit: capacityUnit ?? "kg",
       odometer,
       status: "available",
-    });
+      region,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await collection.insertOne(vehicle as Vehicle);
 
     return NextResponse.json(
-      { success: true, data: vehicle },
-      { status: 201 }
+      {
+        success: true,
+        data: { ...vehicle, _id: result.insertedId.toString() },
+      },
+      { status: 201 },
     );
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
-/**
- * PATCH /api/vehicles
- * Status Update & Business Logic Enforcement
- */
 export async function PATCH(req: NextRequest) {
   try {
-    await getDb();
+    const db = await getDb();
+    const collection = db.collection<Vehicle>(VEHICLES_COLLECTION);
 
-    const body = await req.json();
+    const body = (await req.json()) as { id: string; status: VehicleStatus };
     const { id, status } = body;
 
     if (!id || !status) {
       return NextResponse.json(
         { success: false, message: "Vehicle ID and status required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const vehicle = await Vehicle.findById(id);
+    const vehicle = await collection.findOne({
+      _id: id,
+    } as unknown as Parameters<typeof collection.findOne>[0]);
 
     if (!vehicle) {
       return NextResponse.json(
         { success: false, message: "Vehicle not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    /**
-     * Business Rules for FleetFlow
-     */
-
-    // Cannot set Available if in Shop
-    if (vehicle.status === "In Shop" && status === "On Trip") {
+    if (vehicle.status === "in_shop" && status === "on_trip") {
       return NextResponse.json(
         { success: false, message: "Vehicle in maintenance cannot go on trip" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Cannot activate retired vehicle
-    if (vehicle.status === "Retired") {
+    if (vehicle.status === "out_of_service") {
       return NextResponse.json(
         { success: false, message: "Retired vehicle cannot be modified" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    vehicle.status = status;
-    await vehicle.save();
+    const result = await collection.updateOne(
+      { _id: id } as unknown as Parameters<typeof collection.updateOne>[0],
+      { $set: { status, updatedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Vehicle not found" },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
-      data: vehicle,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
-/**
- * DELETE /api/vehicles
- * Soft Delete (Retire Vehicle)
- */
 export async function DELETE(req: NextRequest) {
   try {
-    await getDb();
+    const db = await getDb();
+    const collection = db.collection<Vehicle>(VEHICLES_COLLECTION);
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -193,33 +216,28 @@ export async function DELETE(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, message: "Vehicle ID required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const vehicle = await Vehicle.findById(id);
+    const result = await collection.updateOne(
+      { _id: id } as unknown as Parameters<typeof collection.updateOne>[0],
+      { $set: { status: "out_of_service", updatedAt: new Date() } },
+    );
 
-    if (!vehicle) {
+    if (result.matchedCount === 0) {
       return NextResponse.json(
         { success: false, message: "Vehicle not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
-
-    // Soft delete logic
-    vehicle.status = "Retired";
-    vehicle.isActive = false;
-
-    await vehicle.save();
 
     return NextResponse.json({
       success: true,
       message: "Vehicle retired successfully",
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
