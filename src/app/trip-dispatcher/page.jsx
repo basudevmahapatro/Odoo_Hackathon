@@ -279,7 +279,7 @@ export default function TripDispatcherPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors font-medium"
+            className="w-full cursor-pointer bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors font-medium"
           >
             Confirm & Dispatch Trip
           </button>

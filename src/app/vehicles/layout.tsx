@@ -10,9 +10,9 @@ import {
 	Truck,
 	Wrench,
 } from "lucide-react";
-import SearchFilters from "./_components/SearchFilters";
+import SearchFilters from "../dashboard/_components/SearchFilters";
 
-type DashboardLayoutProps = {
+type VehiclesLayoutProps = {
 	children: React.ReactNode;
 };
 
@@ -26,7 +26,7 @@ const navItems = [
 	{ label: "Analytics & Reports", icon: PieChart },
 ];
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function VehiclesLayout({ children }: VehiclesLayoutProps) {
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
@@ -68,7 +68,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 			>
 				<nav className="space-y-1 px-2 py-6">
 					{navItems.map((item) => {
-						const isActive = item.label === "Dashboard";
+						const isActive = item.label === "Vehicle Registry";
 						const Icon = item.icon;
 						return (
 							<button
@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 				}
 			>
 				{/* Search and Filters - Consistent across all pages */}
-				<SearchFilters placeholder="Search dashboard" />
+				<SearchFilters placeholder="Search vehicles" />
 
 				{/* Page-specific content */}
 				{children}

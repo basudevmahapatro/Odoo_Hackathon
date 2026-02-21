@@ -99,130 +99,109 @@ export default function VehiclesPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center text-xl font-medium">
-        Loading Fleet...
+      <div className="flex h-96 items-center justify-center">
+        <p className="text-lg text-gray-500">Loading vehicles...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-10 bg-gray-50 min-h-screen">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Fleet Vehicles
-        </h1>
-
+    <div>
+      {/* Action Button */}
+      <div className="mb-6 flex w-full justify-end">
         <button
+          type="button"
           onClick={() => setShowModal(true)}
-          className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition"
+          className="cursor-pointer rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
         >
           + New Vehicle
         </button>
       </div>
 
-      {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Kpi title="Available" value={available} />
-        <Kpi title="On Trip" value={activeFleet} />
-        <Kpi title="In Shop" value={maintenance} />
-      </div>
-
-      {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl shadow-sm mb-8 flex flex-col md:flex-row gap-4">
-        <input
-          type="text"
-          placeholder="Search by plate, model or vehicle number..."
-          className="p-3 border rounded w-full focus:outline-none focus:ring-1 focus:ring-black"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-
-        <select
-          className="p-3 border rounded focus:outline-none focus:ring-1 focus:ring-black"
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
-          <option value="All">All Status</option>
-          <option value="Available">Available</option>
-          <option value="On Trip">On Trip</option>
-          <option value="In Shop">In Shop</option>
-          <option value="Retired">Retired</option>
-        </select>
-
-        <button
-          onClick={fetchVehicles}
-          className="border px-4 py-2 rounded hover:bg-gray-100 transition"
-        >
-          Refresh
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-4 text-left">Plate</th>
-              <th className="p-4 text-left">Model</th>
-              <th className="p-4 text-left">Capacity</th>
-              <th className="p-4 text-left">Odometer</th>
-              <th className="p-4 text-left">Status</th>
-              <th className="p-4 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center p-8 text-gray-400">
-                  No vehicles found.
-                </td>
-              </tr>
-            ) : (
-              filtered.map(vehicle => (
-                <tr
-                  key={vehicle._id}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="p-4 font-medium">
-                    {vehicle.plateNumber}
-                  </td>
-                  <td className="p-4">{vehicle.vehicleModel}</td>
-                  <td className="p-4">
-                    {vehicle.capacity} {vehicle.capacityUnit}
-                  </td>
-                  <td className="p-4">{vehicle.odometer} km</td>
-                  <td className="p-4">
-                    <StatusBadge status={vehicle.status} />
-                  </td>
-                  <td className="p-4">
-                    {vehicle.status !== "Retired" && (
-                      <button
-                        onClick={() => retireVehicle(vehicle._id)}
-                        className="text-black hover:underline"
-                      >
-                        Retire
-                      </button>
-                    )}
-                  </td>
+      {/* Vehicles Table */}
+      <section>
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="border-b border-gray-200 px-5 py-4 text-sm font-medium">
+            Fleet Vehicles
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-5 py-3">No</th>
+                  <th className="px-5 py-3">Plate</th>
+                  <th className="px-5 py-3">Model</th>
+                  <th className="px-5 py-3">Type</th>
+                  <th className="px-5 py-3">Capacity</th>
+                  <th className="px-5 py-3">Odometer</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Action</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-5 py-8 text-center text-gray-400">
+                      No vehicles found.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((vehicle, index) => (
+                    <tr
+                      key={vehicle._id}
+                      className="border-t border-gray-200 transition hover:bg-gray-50"
+                    >
+                      <td className="px-5 py-4 text-gray-700">
+                        {index + 1}
+                      </td>
+                      <td className="px-5 py-4 font-medium text-black">
+                        {vehicle.plateNumber}
+                      </td>
+                      <td className="px-5 py-4 text-gray-700">
+                        {vehicle.vehicleModel}
+                      </td>
+                      <td className="px-5 py-4 text-gray-700">
+                        {vehicle.type || 'N/A'}
+                      </td>
+                      <td className="px-5 py-4 text-gray-700">
+                        {vehicle.capacity} {vehicle.capacityUnit}
+                      </td>
+                      <td className="px-5 py-4 text-gray-700">
+                        {vehicle.odometer} km
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={vehicle.status} />
+                      </td>
+                      <td className="px-5 py-4">
+                        {vehicle.status !== "Retired" && (
+                          <button
+                            type="button"
+                            onClick={() => retireVehicle(vehicle._id)}
+                            className="cursor-pointer text-sm text-black transition hover:underline"
+                          >
+                            Retire
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-      {/* MODAL */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
-          <div className="bg-white p-8 rounded-xl w-full max-w-lg shadow-xl">
-            <h2 className="text-xl font-semibold mb-6">Add New Vehicle</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-xl">
+            <h2 className="mb-6 text-xl font-semibold">Add New Vehicle</h2>
 
             <div className="grid gap-4">
               <input
                 placeholder="Vehicle Number"
-                className="p-3 border rounded"
+                className="rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 value={newVehicle.vehicleNumber}
                 onChange={e =>
                   setNewVehicle({ ...newVehicle, vehicleNumber: e.target.value })
@@ -231,7 +210,7 @@ export default function VehiclesPage() {
 
               <input
                 placeholder="Plate Number"
-                className="p-3 border rounded"
+                className="rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 value={newVehicle.plateNumber}
                 onChange={e =>
                   setNewVehicle({ ...newVehicle, plateNumber: e.target.value })
@@ -240,7 +219,7 @@ export default function VehiclesPage() {
 
               <input
                 placeholder="Model"
-                className="p-3 border rounded"
+                className="rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 value={newVehicle.vehicleModel}
                 onChange={e =>
                   setNewVehicle({ ...newVehicle, vehicleModel: e.target.value })
@@ -251,14 +230,14 @@ export default function VehiclesPage() {
                 <input
                   type="number"
                   placeholder="Capacity"
-                  className="p-3 border rounded w-full"
+                  className="w-full rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   value={newVehicle.capacity}
                   onChange={e =>
                     setNewVehicle({ ...newVehicle, capacity: e.target.value })
                   }
                 />
                 <select
-                  className="p-3 border rounded"
+                  className="cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   value={newVehicle.capacityUnit}
                   onChange={e =>
                     setNewVehicle({ ...newVehicle, capacityUnit: e.target.value })
@@ -272,7 +251,7 @@ export default function VehiclesPage() {
               <input
                 type="number"
                 placeholder="Odometer"
-                className="p-3 border rounded"
+                className="rounded-md border border-gray-200 px-3 py-2 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 value={newVehicle.odometer}
                 onChange={e =>
                   setNewVehicle({ ...newVehicle, odometer: e.target.value })
@@ -280,17 +259,19 @@ export default function VehiclesPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="mt-6 flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="border px-4 py-2 rounded hover:bg-gray-100"
+                className="cursor-pointer rounded-md border border-gray-200 px-4 py-2 transition hover:bg-gray-100"
               >
                 Cancel
               </button>
 
               <button
+                type="button"
                 onClick={addVehicle}
-                className="bg-black text-white px-5 py-2 rounded hover:bg-gray-800"
+                className="cursor-pointer rounded-md bg-black px-5 py-2 text-white transition hover:bg-gray-800"
               >
                 Add Vehicle
               </button>
@@ -302,20 +283,24 @@ export default function VehiclesPage() {
   );
 }
 
-/* KPI */
-function Kpi({ title, value }: any) {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <h2 className="text-3xl font-semibold mt-2">{value}</h2>
-    </div>
-  );
-}
-
 /* STATUS BADGE */
 function StatusBadge({ status }: { status: string }) {
+  let badgeClass = "bg-gray-200 text-gray-800";
+  
+  if (status === "Available") {
+    badgeClass = "bg-green-100 text-green-800";
+  } else if (status === "On Trip") {
+    badgeClass = "bg-black text-white";
+  } else if (status === "In Shop") {
+    badgeClass = "bg-yellow-100 text-yellow-800";
+  } else if (status === "Retired") {
+    badgeClass = "bg-red-100 text-red-800";
+  }
+
   return (
-    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+    <span
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`}
+    >
       {status}
     </span>
   );

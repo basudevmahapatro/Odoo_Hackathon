@@ -150,7 +150,7 @@ export function AuthForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full border border-black bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full cursor-pointer border border-black bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading
               ? "Loading..."
@@ -168,7 +168,7 @@ export function AuthForm() {
             <button
               type="button"
               onClick={toggleMode}
-              className="ml-2 font-medium text-black underline hover:no-underline"
+              className="ml-2 cursor-pointer font-medium text-black underline hover:no-underline"
             >
               {mode === "signin" ? "Register" : "Sign In"}
             </button>

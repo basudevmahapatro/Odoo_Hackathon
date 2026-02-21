@@ -19,13 +19,13 @@ export default function DashboardPage() {
 			<div className="mb-6 flex w-full justify-end gap-3">
 				<button
 					type="button"
-					className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+					className="cursor-pointer rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
 				>
 					New Trip
 				</button>
 				<button
 					type="button"
-					className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+					className="cursor-pointer rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
 				>
 					New Vehicle
 				</button>

@@ -126,7 +126,7 @@ export default function ExpensesAndFuelPage() {
           <h2 className="text-xl font-semibold">Expenses</h2>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+            className="cursor-pointer bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
           >
             Add an Expense
           </button>
@@ -265,14 +265,14 @@ export default function ExpensesAndFuelPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+                  className="flex-1 cursor-pointer bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
                 >
                   Create
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 bg-gray-200 text-black px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+                  className="flex-1 cursor-pointer bg-gray-200 text-black px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>

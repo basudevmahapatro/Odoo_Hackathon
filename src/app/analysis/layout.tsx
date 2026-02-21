@@ -37,7 +37,7 @@ export default function AnalysisLayout({ children }: AnalysisLayoutProps) {
 					<button
 						type="button"
 						aria-label="Toggle sidebar"
-						className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-50"
+						className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-gray-200 bg-white hover:bg-gray-50"
 						onClick={() => setIsOpen((prev) => !prev)}
 					>
 						<span className="flex flex-col gap-1">
@@ -51,7 +51,7 @@ export default function AnalysisLayout({ children }: AnalysisLayoutProps) {
 				<div className="flex items-center">
 					<button
 						type="button"
-						className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+						className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
 						aria-label="Profile"
 					>
 						<span className="text-sm font-semibold text-gray-700">U</span>
@@ -75,7 +75,7 @@ export default function AnalysisLayout({ children }: AnalysisLayoutProps) {
 								key={item.label}
 								type="button"
 								className={
-									"group relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition " +
+									"group relative flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition " +
 									(isActive
 										? "bg-black text-white"
 										: "text-black hover:bg-gray-100")
@@ -102,7 +102,7 @@ export default function AnalysisLayout({ children }: AnalysisLayoutProps) {
 				}
 			>
 				{/* Search and Filters - Consistent across all pages */}
-				<SearchFilters />
+				<SearchFilters placeholder="Search reports" />
 
 				{/* Page-specific content */}
 				{children}
