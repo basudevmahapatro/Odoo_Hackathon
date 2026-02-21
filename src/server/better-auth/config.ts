@@ -16,6 +16,7 @@ export const auth = betterAuth({
   database: mongodbAdapter(client.db("fleetflow")),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false,
   },
 });
 

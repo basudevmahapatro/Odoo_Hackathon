@@ -132,9 +132,9 @@ export default function VehiclesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-10">
+    <div>
       {/* HEADER */}
-      <div className="mb-10 flex items-center justify-between">
+      <div className="my-6 flex items-center justify-between">
         <h1 className="text-3xl font-semibold tracking-tight">
           Fleet Vehicles
         </h1>
@@ -143,7 +143,7 @@ export default function VehiclesPage() {
           onClick={() => setShowModal(true)}
           className="rounded-lg bg-black px-6 py-2 text-white transition hover:bg-gray-800"
         >
-          + New Vehicle
+          New Vehicle
         </button>
       </div>
 
@@ -155,35 +155,37 @@ export default function VehiclesPage() {
       </div>
 
       {/* FILTER BAR */}
-      <div className="mb-8 flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm md:flex-row">
-        <input
-          type="text"
-          placeholder="Search by plate, model, or name..."
-          className="w-full rounded border p-3 focus:ring-1 focus:ring-black focus:outline-none"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="mt-6 mb-6 w-full rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-4">
+          <input
+            type="text"
+            placeholder="Search by plate, model, or name..."
+            className="flex-1 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm transition outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        <select
-          className="rounded border p-3 focus:ring-1 focus:ring-black focus:outline-none"
-          value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value as VehicleStatus | "all")
-          }
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <select
+            className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm transition outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as VehicleStatus | "all")
+            }
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
 
-        <button
-          onClick={() => void fetchVehicles()}
-          className="rounded border px-4 py-2 transition hover:bg-gray-100"
-        >
-          Refresh
-        </button>
+          <button
+            onClick={() => void fetchVehicles()}
+            className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-black transition hover:bg-gray-100"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* TABLE */}
@@ -261,7 +263,10 @@ export default function VehiclesPage() {
                 className="rounded border p-3"
                 value={newVehicle.licensePlate}
                 onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, licensePlate: e.target.value })
+                  setNewVehicle({
+                    ...newVehicle,
+                    licensePlate: e.target.value,
+                  })
                 }
               />
 
